@@ -1,3 +1,9 @@
+"use client";
+
+import useSWR from "swr";
+
+const fetcher = (...args: [any]) => fetch(...args).then((res) => res.json());
+
 interface PokemonResponse {
   count: number;
   next: string;
@@ -5,24 +11,16 @@ interface PokemonResponse {
   results: { name: string; url: string }[];
 }
 
-async function getPokemonList() {
-  const response = await fetch(
-    "https://pokeapi.co/api/v2/pokemon?offset=0&limit=100"
+export default function PokemonPage() {
+  const { data, error, isLoading } = useSWR<PokemonResponse>(
+    "https://pokeapi.co/api/v2/pokemon?offset=0&limit=100",
+    fetcher
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch data");
-  }
+  if (error) return <div>failed to load</div>;
+  if (isLoading) return <div>loading...</div>;
 
-  const data = (await response.json()) as PokemonResponse;
-
-  return data;
-}
-
-export default async function PokemonPage() {
-  const pokemonResponse = await getPokemonList();
-
-  const pokemonList = pokemonResponse.results;
+  const pokemonList = data?.results;
 
   return (
     <div>
